@@ -5,37 +5,11 @@
     <style type="text/css">
       html { height: 100% }
       body { height: 100%; margin: 0; padding: 0 }
-      #map_canvas { height: 100% }
+      #yunar_map { height: 100% }
     </style>
-    <script type="text/javascript"
-      src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDESpX0WV4KVfHtiq8aBCtXzPTmrAhuZ4E&sensor=true">
-    </script>
-    <script type="text/javascript">
-		function detectBrowser() {
-		  var useragent = navigator.userAgent;
-		  var mapdiv = document.getElementById("map_canvas");
-
-		  if (useragent.indexOf('iPhone') != -1 || useragent.indexOf('Android') != -1 ) {
-			mapdiv.style.width = '100%';
-			mapdiv.style.height = '100%';
-		  } else {
-			mapdiv.style.width = '640px';
-			mapdiv.style.height = '480px';
-		  }
-		}
-      function initialize() {
-		detectBrowser();
-        var mapOptions = {
-          center: new google.maps.LatLng(39.92, 116.46),
-          zoom: 12,
-          mapTypeId: google.maps.MapTypeId.ROADMAP
-        };
-        var map = new google.maps.Map(document.getElementById("map_canvas"),
-            mapOptions);
-      }
-    </script>
+	<script type="text/javascript" src="yunarmap.js"></script>
   </head>
   <body onload="initialize()">
-    <div id="map_canvas"></div>
+    <div id="yunar_map"></div>
   </body>
 </html>
