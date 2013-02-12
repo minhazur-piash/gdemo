@@ -57,12 +57,15 @@ function sizeButton(controlDiv, map) {
   google.maps.event.addDomListener(controlUI, 'click', function() {
 		var mapdiv = map.getDiv();
 		if(control.getSize() == 0) {
-			//
+			mapdiv.style.position = 'absolute';
+			mapdiv.style.top = '0px';
+			mapdiv.style.left = '0px';
 			mapdiv.style.height = '100%';
 			mapdiv.style.width = '100%';
 			control.setSize(1);
 			google.maps.event.trigger(map, 'resize');
 		} else {
+			mapdiv.style.top = '100px';
 			mapdiv.style.width = '640px';
 			mapdiv.style.height = '480px';
 			control.setSize(0);
@@ -83,6 +86,9 @@ function initialize() {
 		mapdiv.style.width = '640px';
 		mapdiv.style.height = '480px';
 	} else {
+		//mapdiv.style.position = 'absolute';
+		//mapdiv.style.top = '0px';
+		//mapdiv.style.left = '0px';
 		mapdiv.style.width = '100%';
 		mapdiv.style.height = '100%';
 	}
