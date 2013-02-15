@@ -65,12 +65,14 @@ function sizeButton(controlDiv, map) {
 			mapdiv.style.height = '100%';
 			mapdiv.style.width = '100%';
 			control.setSize(1);
+			controlText.innerHTML = '<strong>退出全屏</strong>';
 			google.maps.event.trigger(map, 'resize');
 		} else {
 			mapdiv.style.top = '100px';
 			mapdiv.style.width = '640px';
 			mapdiv.style.height = '480px';
 			control.setSize(0);
+			controlText.innerHTML = '<strong>全屏</strong>';
 			google.maps.event.trigger(map, 'resize');
 		}
   });
@@ -79,12 +81,39 @@ function sizeButton(controlDiv, map) {
 //var markersArray = [];
 
 function addMarker(map, location) {
-  marker = new google.maps.Marker({
+	var infowindow = new google.maps.InfoWindow({
+		content: '仓库'
+	});
+  var marker = new google.maps.Marker({
     position: location,
     map: map
   });
   marker.setMap(map);
   //markersArray.push(marker);
+	google.maps.event.addListener(marker, 'click', function() {
+	  infowindow.open(map,marker);
+	});
+}
+
+// Define a property to hold the state.
+inputButton.prototype.state_ = 0;
+inputButton.prototype.listener_;
+
+// Define setters and getters for this property.
+inputButton.prototype.getState = function() {
+  return this.state_;
+}
+
+inputButton.prototype.setState = function(state) {
+	this.state_ = state;
+}
+
+inputButton.prototype.getListener = function() {
+  return this.listener_;
+}
+
+inputButton.prototype.setListener = function(listener) {
+	this.listener_ = listener;
 }
 
 function inputButton(controlDiv, map) {
@@ -116,9 +145,20 @@ function inputButton(controlDiv, map) {
   var control = this;
   // Setup the click event listeners: simply set the map to Chicago.
   google.maps.event.addDomListener(controlUI, 'click', function() {
-	google.maps.event.addListenerOnce(map, 'click', function(event) {
-		addMarker(map, event.latLng);
-	});
+	if(control.getState() == 0) {
+		controlText.innerHTML = '<strong>取消录入</strong>';
+		control.setState(1);
+		var listener = google.maps.event.addListenerOnce(map, 'click', function(event) {
+			addMarker(map, event.latLng);
+			controlText.innerHTML = '<strong>录入</strong>';
+			control.setState(0);
+		});
+		control.setListener(listener);
+	} else {
+		controlText.innerHTML = '<strong>录入</strong>';
+		control.setState(0);
+		google.maps.event.removeListener(control.getListener());
+	}
   });
 }
 
