@@ -1,6 +1,6 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
-  <head>
+<head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
     <style type="text/css">
@@ -8,16 +8,18 @@
       body { height: 100%; margin: 0; padding: 0 }
       #yunar_map { height: 100%; position: absolute; top: 100px }
     </style>
-  </head>
-  <body>
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.9.1.min.js"></script>
+	<script type="text/javascript" src="yunarmap.js"></script>
+	<script id='gapi' type="text/javascript"
+		src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDESpX0WV4KVfHtiq8aBCtXzPTmrAhuZ4E&sensor=true">
+	</script>
+</head>
+<body>
 	<div>
 		<h1>运哪儿地图模块</h1>
-		<p>全屏，录入</p>
+		<p id='error'></p>
+		<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 	</div>
     <div id="yunar_map"></div>
-  </body>
-  	<script type="text/javascript" src="yunarmap.js"></script>
-	<script type="text/javascript"
-		src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDESpX0WV4KVfHtiq8aBCtXzPTmrAhuZ4E&sensor=true&callback=loadMap">
-	</script>
+</body>
 </html>
