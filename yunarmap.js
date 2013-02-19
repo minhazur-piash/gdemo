@@ -37,6 +37,9 @@ $(document).ready(function(){
 	var nameControlDiv = document.createElement('div');
 	var nameControl = new nameText(nameControlDiv, map);
 	map.controls[google.maps.ControlPosition.TOP_LEFT].push(nameControlDiv);
+	var inputRoadControlDiv = document.createElement('div');
+	var inputRoadControl = new pathInputButton(inputRoadControlDiv, map);
+	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(inputRoadControlDiv);
 });
 
 function detectBrowser() {
@@ -117,23 +120,33 @@ function sizeButton(controlDiv, map) {
   });
 }
 
+function verifyMarker() {
+	curMarker.setIcon("A.png");
+}
+
+function deleteMarker() {
+	curMarker.setMap(null);
+}
+
 function addMarker(map, location, infowindow) {
 	var ckName = prompt("请输入仓库名","仓库1");
 	if(ckName==null||ckName=="") {
 		return;
 	}
-	infowindow.setContent(ckName+"<p><button>认证</button> <button>删除</button></p>");
+	infowindow.setContent(ckName+"<p><button onclick='verifyMarker()'>认证</button> <button onclick='deleteMarker()'>删除</button></p>");
 	//infowindow.setPosition(location);
   var marker = new google.maps.Marker({
     position: location,
 	//icon: "A.png",
     map: map
   });
+  curMarker = marker;
   marker.setMap(map);
   infowindow.open(map,marker);
   //markersArray.push(marker);
 	google.maps.event.addListener(marker, 'click', function() {
-	  infowindow.setContent(ckName+"<p><button>认证</button> <button>删除</button></p>");
+	  infowindow.setContent(ckName+"<p><button onclick='verifyMarker()'>认证</button> <button onclick='deleteMarker()'>删除</button></p>");
+	  curMarker = marker;
 	  infowindow.open(map,marker);
 	});
 }
@@ -193,26 +206,26 @@ function inputButton(controlDiv, map) {
   controlText.style.fontSize = '13px';
   controlText.style.paddingLeft = '4px';
   controlText.style.paddingRight = '4px';
-  controlText.innerHTML = '<strong>录入</strong>';
+  controlText.innerHTML = '<strong>标记仓库</strong>';
   controlUI.appendChild(controlText);
 
   var control = this;
   // Setup the click event listeners: simply set the map to Chicago.
   google.maps.event.addDomListener(controlUI, 'click', function() {
 	if(control.getState() == 0) {
-		controlText.innerHTML = '<strong>取消录入</strong>';
+		controlText.innerHTML = '<strong>取消标记</strong>';
 		control.setState(1);
 		var listener = google.maps.event.addListenerOnce(map, 'click', function(event) {
 			if(control.getInfoWindow()==null) {
 				control.setInfoWindow(new google.maps.InfoWindow());
 			}
 			addMarker(map, event.latLng, control.getInfoWindow());
-			controlText.innerHTML = '<strong>录入</strong>';
+			controlText.innerHTML = '<strong>标记仓库</strong>';
 			control.setState(0);
 		});
 		control.setListener(listener);
 	} else {
-		controlText.innerHTML = '<strong>录入</strong>';
+		controlText.innerHTML = '<strong>标记仓库</strong>';
 		control.setState(0);
 		google.maps.event.removeListener(control.getListener());
 	}
@@ -244,4 +257,93 @@ function nameText(controlDiv, map) {
   controlText.style.paddingRight = '4px';
   controlText.innerHTML = '<strong>用户:</strong>游客';
   controlUI.appendChild(controlText);
+}
+
+// Define a property to hold the state.
+pathInputButton.prototype.state_ = 0;
+pathInputButton.prototype.listener_;
+// Define setters and getters for this property.
+pathInputButton.prototype.getState = function() {
+  return this.state_;
+}
+
+pathInputButton.prototype.setState = function(state) {
+	this.state_ = state;
+}
+
+pathInputButton.prototype.getListener = function() {
+  return this.listener_;
+}
+
+pathInputButton.prototype.setListener = function(listener) {
+	this.listener_ = listener;
+}
+
+function pathInputButton(controlDiv, map) {
+  // Set CSS styles for the DIV containing the control
+  // Setting padding to 5 px will offset the control
+  // from the edge of the map.
+  controlDiv.style.padding = '5px';
+
+  // Set CSS for the control border.
+  var controlUI = document.createElement('div');
+  controlUI.style.backgroundColor = 'white';
+  controlUI.style.borderStyle = 'solid';
+  controlUI.style.borderWidth = '1px';
+  controlUI.style.cursor = 'pointer';
+  controlUI.style.textAlign = 'center';
+  controlUI.title = 'Click to input user data';
+  controlDiv.appendChild(controlUI);
+
+  // Set CSS for the control interior.
+  var controlText = document.createElement('div');
+  controlText.style.fontFamily = 'Arial,sans-serif';
+  controlText.style.fontSize = '13px';
+  controlText.style.paddingLeft = '4px';
+  controlText.style.paddingRight = '4px';
+  controlText.innerHTML = '<strong>标注路径</strong>';
+  controlUI.appendChild(controlText);
+
+  var control = this;
+  // Setup the click event listeners: simply set the map to Chicago.
+  google.maps.event.addDomListener(controlUI, 'click', function() {
+	if(control.getState() == 0) {
+		controlText.innerHTML = '<strong>完成路径</strong>';
+		control.setState(1);
+		var polyOptions = {
+			strokeColor: '#000000',
+			strokeOpacity: 1.0,
+			strokeWeight: 3
+		}
+		var poly = new google.maps.Polyline(polyOptions);
+		poly.setMap(map);
+		var listener = google.maps.event.addListener(map, 'click', function(event) {
+			var path = poly.getPath();
+			path.push(event.latLng);
+			/*
+			  var marker = new google.maps.Marker({
+				position: event.latLng,
+				title: '#' + path.getLength(),
+				map: map
+			  });
+			  */
+		});
+		control.setListener(listener);
+		/*
+		var listener = google.maps.event.addListenerOnce(map, 'click', function(event) {
+			if(control.getInfoWindow()==null) {
+				control.setInfoWindow(new google.maps.InfoWindow());
+			}
+			addMarker(map, event.latLng, control.getInfoWindow());
+			controlText.innerHTML = '<strong>标路径</strong>';
+			control.setState(0);
+		});
+		control.setListener(listener);
+		*/
+	} else {
+		controlText.innerHTML = '<strong>标注路径</strong>';
+		control.setState(0);
+		google.maps.event.removeListener(control.getListener());
+	}
+  });
 }
