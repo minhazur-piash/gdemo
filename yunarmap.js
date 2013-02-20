@@ -442,18 +442,20 @@ function pathStringButton(controlDiv, map) {
 	}
 	var poly = new google.maps.Polyline(polyOptions);
 	poly.setMap(map);
+	var pt;
 	for(var i=0;i<points.length;++i) {
 		var latLon = points[i].split(",");
 		var lat = latLon[0];
 		var lon = latLon[1];
-		var pt = new google.maps.LatLng(lat,lon,false);
+		pt = new google.maps.LatLng(lat,lon,false);
 		var path = poly.getPath();
 		path.push(pt);
 	}
+	var infoW = new google.maps.InfoWindow();
+	infoW.setContent("<p><b>路线名：</b>"+name+"</p><p><b>运价：</b>"+price+"</p><p><b>耗时：</b>"+time+"</p>");
+	infoW.setPosition(pt);
+	infoW.open(map);
 	google.maps.event.addListener(poly, 'click', function(event) {
-	
-		var infoW = new google.maps.InfoWindow();
-		infoW.setContent("<p><b>路线名：</b>"+name+"</p><p><b>运价：</b>"+price+"</p><p><b>耗时：</b>"+time+"</p>");
 		infoW.setPosition(event.latLng);
 		infoW.open(map);
 	});
