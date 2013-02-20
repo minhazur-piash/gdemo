@@ -37,9 +37,21 @@ $(document).ready(function(){
 	var nameControlDiv = document.createElement('div');
 	var nameControl = new nameText(nameControlDiv, map);
 	map.controls[google.maps.ControlPosition.TOP_LEFT].push(nameControlDiv);
+	var searchControlDiv = document.createElement('div');
+	var searchControl = new searchFrame(searchControlDiv, map);
+	map.controls[google.maps.ControlPosition.BOTTOM_LEFT].push(searchControlDiv);
 	var inputRoadControlDiv = document.createElement('div');
 	var inputRoadControl = new pathInputButton(inputRoadControlDiv, map);
 	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(inputRoadControlDiv);
+	var pathStringControlDiv = document.createElement('div');
+	var pathStringControl = new pathStringButton(pathStringControlDiv, map);
+	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(pathStringControlDiv);
+	/*
+	google.maps.event.addListener(map, 'click', function(event) {
+		alert(event.latLng);
+	});
+	*/
+	
 });
 
 function detectBrowser() {
@@ -84,7 +96,7 @@ function sizeButton(controlDiv, map) {
   controlUI.style.borderWidth = '1px';
   controlUI.style.cursor = 'pointer';
   controlUI.style.textAlign = 'center';
-  controlUI.title = 'Click to set the map to Home';
+  controlUI.title = '点击切换地图全屏';
   controlDiv.appendChild(controlUI);
 
   // Set CSS for the control interior.
@@ -197,7 +209,7 @@ function inputButton(controlDiv, map) {
   controlUI.style.borderWidth = '1px';
   controlUI.style.cursor = 'pointer';
   controlUI.style.textAlign = 'center';
-  controlUI.title = 'Click to input user data';
+  controlUI.title = '点击增加新的仓库';
   controlDiv.appendChild(controlUI);
 
   // Set CSS for the control interior.
@@ -255,7 +267,35 @@ function nameText(controlDiv, map) {
   controlText.style.fontSize = '13px';
   controlText.style.paddingLeft = '4px';
   controlText.style.paddingRight = '4px';
-  controlText.innerHTML = '<strong>用户:</strong>游客';
+  controlText.innerHTML = '<strong>用户:</strong>游客<a href="http://www.dragontrans.com/e/member/register/ChangeRegister.php">登陆</a>';
+  controlUI.appendChild(controlText);
+}
+
+
+function searchFrame(controlDiv, map) {
+	
+  // Set CSS styles for the DIV containing the control
+  // Setting padding to 5 px will offset the control
+  // from the edge of the map.
+  controlDiv.style.padding = '15px';
+
+  // Set CSS for the control border.
+  var controlUI = document.createElement('div');
+  controlUI.style.backgroundColor = 'white';
+  controlUI.style.borderStyle = 'solid';
+  controlUI.style.borderWidth = '1px';
+  controlUI.style.cursor = 'pointer';
+  controlUI.style.textAlign = 'center';
+  controlUI.title = 'Click to input user data';
+  controlDiv.appendChild(controlUI);
+
+  // Set CSS for the control interior.
+  var controlText = document.createElement('div');
+  controlText.style.fontFamily = 'Arial,sans-serif';
+  controlText.style.fontSize = '13px';
+  controlText.style.paddingLeft = '4px';
+  controlText.style.paddingRight = '4px';
+  controlText.innerHTML = '起点：<input type="text" name="from" size="12" maxlength="20">终点：<input type="text" name="to" size="12" maxlength="20"><input type="submit" name="搜索" value="搜索">';
   controlUI.appendChild(controlText);
 }
 
@@ -292,7 +332,7 @@ function pathInputButton(controlDiv, map) {
   controlUI.style.borderWidth = '1px';
   controlUI.style.cursor = 'pointer';
   controlUI.style.textAlign = 'center';
-  controlUI.title = 'Click to input user data';
+  controlUI.title = '点击增加运输路线';
   controlDiv.appendChild(controlUI);
 
   // Set CSS for the control interior.
@@ -345,5 +385,77 @@ function pathInputButton(controlDiv, map) {
 		control.setState(0);
 		google.maps.event.removeListener(control.getListener());
 	}
+  });
+}
+
+
+function pathStringButton(controlDiv, map) {
+  // Set CSS styles for the DIV containing the control
+  // Setting padding to 5 px will offset the control
+  // from the edge of the map.
+  controlDiv.style.padding = '5px';
+
+  // Set CSS for the control border.
+  var controlUI = document.createElement('div');
+  controlUI.style.backgroundColor = 'white';
+  controlUI.style.borderStyle = 'solid';
+  controlUI.style.borderWidth = '1px';
+  controlUI.style.cursor = 'pointer';
+  controlUI.style.textAlign = 'center';
+  controlUI.title = '点击可导入字符串格式的路径';
+  controlDiv.appendChild(controlUI);
+
+  // Set CSS for the control interior.
+  var controlText = document.createElement('div');
+  controlText.style.fontFamily = 'Arial,sans-serif';
+  controlText.style.fontSize = '13px';
+  controlText.style.paddingLeft = '4px';
+  controlText.style.paddingRight = '4px';
+  controlText.innerHTML = '<strong>路径导入</strong>';
+  controlUI.appendChild(controlText);
+
+  var control = this;
+  // Setup the click event listeners: simply set the map to Chicago.
+  google.maps.event.addDomListener(controlUI, 'click', function() {
+	var ckName = prompt("路径格式为：路线名|纬度,精度;...纬度,精度|运价|时间","中关村-北京站|39.98386,116.31659;39.98540,116.31646;39.98678,116.35354;39.90719,116.35655;39.90835,116.42710;39.90496,116.42723|3000|220");
+	if(ckName==null||ckName=="") {
+		return;
+	}
+	var ckPiece = ckName.split("|");
+	var name = ckPiece[0];
+	var path = ckPiece[1];
+	var price = ckPiece[2];
+	var time = ckPiece[3];
+	if(name==null||path==null||path==""||price==null||price==""||time==null||time=="") {
+		alert("输入格式有误。");
+		return;
+	}
+	var points = path.split(";");
+	if(points.length<2) {
+		alert("输入错误：路径点至少两个以上。");
+		return;
+	}
+	var polyOptions = {
+		strokeColor: '#000000',
+		strokeOpacity: 1.0,
+		strokeWeight: 3
+	}
+	var poly = new google.maps.Polyline(polyOptions);
+	poly.setMap(map);
+	for(var i=0;i<points.length;++i) {
+		var latLon = points[i].split(",");
+		var lat = latLon[0];
+		var lon = latLon[1];
+		var pt = new google.maps.LatLng(lat,lon,false);
+		var path = poly.getPath();
+		path.push(pt);
+	}
+	google.maps.event.addListener(poly, 'click', function(event) {
+	
+		var infoW = new google.maps.InfoWindow();
+		infoW.setContent("<p><b>路线名：</b>"+name+"</p><p><b>运价：</b>"+price+"</p><p><b>耗时：</b>"+time+"</p>");
+		infoW.setPosition(event.latLng);
+		infoW.open(map);
+	});
   });
 }
