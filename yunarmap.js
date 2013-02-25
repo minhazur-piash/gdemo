@@ -18,9 +18,9 @@ $(document).ready(function(){
 		mapdiv.style.width = '640px';
 		mapdiv.style.height = '480px';
 	} else {
-		//mapdiv.style.position = 'absolute';
-		//mapdiv.style.top = '0px';
-		//mapdiv.style.left = '0px';
+		mapdiv.style.position = 'absolute';
+		mapdiv.style.top = '0px';
+		mapdiv.style.left = '0px';
 		mapdiv.style.width = '100%';
 		mapdiv.style.height = '100%';
 	}
@@ -157,8 +157,8 @@ function addMarker(map, location, infowindow) {
   infowindow.open(map,marker);
   //markersArray.push(marker);
 	google.maps.event.addListener(marker, 'click', function() {
+		curMarker = marker;
 	  infowindow.setContent(ckName+"<p><button onclick='verifyMarker()'>认证</button> <button onclick='deleteMarker()'>删除</button></p>");
-	  curMarker = marker;
 	  infowindow.open(map,marker);
 	});
 }
@@ -267,7 +267,7 @@ function nameText(controlDiv, map) {
   controlText.style.fontSize = '13px';
   controlText.style.paddingLeft = '4px';
   controlText.style.paddingRight = '4px';
-  controlText.innerHTML = '<strong>用户:</strong>游客<a href="http://www.dragontrans.com/e/member/register/ChangeRegister.php">登陆</a>';
+  controlText.innerHTML = '<strong>用户:</strong>游客 <a href="http://www.dragontrans.com/e/member/register/ChangeRegister.php">注册</a> <a href="http://www.dragontrans.com/e/member/register/ChangeRegister.php">登陆</a>';
   controlUI.appendChild(controlText);
 }
 
@@ -302,6 +302,7 @@ function searchFrame(controlDiv, map) {
 // Define a property to hold the state.
 pathInputButton.prototype.state_ = 0;
 pathInputButton.prototype.listener_;
+pathInputButton.prototype.ploy_;
 // Define setters and getters for this property.
 pathInputButton.prototype.getState = function() {
   return this.state_;
@@ -317,6 +318,14 @@ pathInputButton.prototype.getListener = function() {
 
 pathInputButton.prototype.setListener = function(listener) {
 	this.listener_ = listener;
+}
+
+pathInputButton.prototype.getPoly = function() {
+  return this.ploy_;
+}
+
+pathInputButton.prototype.setPoly = function(ploy) {
+	this.ploy_ = ploy;
 }
 
 function pathInputButton(controlDiv, map) {
@@ -341,14 +350,14 @@ function pathInputButton(controlDiv, map) {
   controlText.style.fontSize = '13px';
   controlText.style.paddingLeft = '4px';
   controlText.style.paddingRight = '4px';
-  controlText.innerHTML = '<strong>标注路径</strong>';
+  controlText.innerHTML = '<strong>标注路线</strong>';
   controlUI.appendChild(controlText);
 
   var control = this;
   // Setup the click event listeners: simply set the map to Chicago.
   google.maps.event.addDomListener(controlUI, 'click', function() {
 	if(control.getState() == 0) {
-		controlText.innerHTML = '<strong>完成路径</strong>';
+		controlText.innerHTML = '<strong>完成路线</strong>';
 		control.setState(1);
 		var polyOptions = {
 			strokeColor: '#000000',
@@ -356,6 +365,7 @@ function pathInputButton(controlDiv, map) {
 			strokeWeight: 3
 		}
 		var poly = new google.maps.Polyline(polyOptions);
+		control.setPoly(poly);
 		poly.setMap(map);
 		var listener = google.maps.event.addListener(map, 'click', function(event) {
 			var path = poly.getPath();
@@ -375,19 +385,42 @@ function pathInputButton(controlDiv, map) {
 				control.setInfoWindow(new google.maps.InfoWindow());
 			}
 			addMarker(map, event.latLng, control.getInfoWindow());
-			controlText.innerHTML = '<strong>标路径</strong>';
+			controlText.innerHTML = '<strong>标路线</strong>';
 			control.setState(0);
 		});
 		control.setListener(listener);
 		*/
 	} else {
-		controlText.innerHTML = '<strong>标注路径</strong>';
+		controlText.innerHTML = '<strong>标注路线</strong>';
 		control.setState(0);
 		google.maps.event.removeListener(control.getListener());
+		var ckName = prompt("请输入：线路名称，运价，耗时","中关村-北京站,3000,220");
+		var ckPiece = ckName.split(",");
+		var name = ckPiece[0];
+		var price = ckPiece[1];
+		var time = ckPiece[2];
+		if(name==null||price==null||price==""||time==null||time=="") {
+			alert("输入格式有误。");
+			return;
+		}
+		infoW = new google.maps.InfoWindow();
+		infoW.setContent("<p><b>路线名：</b>"+name+"</p><p><b>运价：</b>"+price+"</p><p><b>耗时：</b>"+time+"</p><p><button onclick='deletePath()'>删除</button></p>");
+		var poly = control.getPoly();
+		infoW.setPosition(poly.getPath().getAt(0));
+		infoW.open(map);
+		google.maps.event.addListener(poly, 'click', function(event) {
+			curPath = poly;
+			infoW.setPosition(event.latLng);
+			infoW.open(map);
+		});
 	}
   });
 }
 
+function deletePath() {
+	curPath.setMap(null);
+	infoW.close();
+}
 
 function pathStringButton(controlDiv, map) {
   // Set CSS styles for the DIV containing the control
@@ -402,7 +435,7 @@ function pathStringButton(controlDiv, map) {
   controlUI.style.borderWidth = '1px';
   controlUI.style.cursor = 'pointer';
   controlUI.style.textAlign = 'center';
-  controlUI.title = '点击可导入字符串格式的路径';
+  controlUI.title = '点击可输入字符串格式的路线';
   controlDiv.appendChild(controlUI);
 
   // Set CSS for the control interior.
@@ -411,13 +444,13 @@ function pathStringButton(controlDiv, map) {
   controlText.style.fontSize = '13px';
   controlText.style.paddingLeft = '4px';
   controlText.style.paddingRight = '4px';
-  controlText.innerHTML = '<strong>路径导入</strong>';
+  controlText.innerHTML = '<strong>路线输入</strong>';
   controlUI.appendChild(controlText);
 
   var control = this;
   // Setup the click event listeners: simply set the map to Chicago.
   google.maps.event.addDomListener(controlUI, 'click', function() {
-	var ckName = prompt("路径格式为：路线名|纬度,精度;...纬度,精度|运价|时间","中关村-北京站|39.98386,116.31659;39.98540,116.31646;39.98678,116.35354;39.90719,116.35655;39.90835,116.42710;39.90496,116.42723|3000|220");
+	var ckName = prompt("路线格式为：路线名|纬度,精度;...纬度,精度|运价|时间","中关村-北京站|39.98386,116.31659;39.98540,116.31646;39.98678,116.35354;39.90719,116.35655;39.90835,116.42710;39.90496,116.42723|3000|220");
 	if(ckName==null||ckName=="") {
 		return;
 	}
@@ -432,7 +465,7 @@ function pathStringButton(controlDiv, map) {
 	}
 	var points = path.split(";");
 	if(points.length<2) {
-		alert("输入错误：路径点至少两个以上。");
+		alert("输入错误：路线点至少两个以上。");
 		return;
 	}
 	var polyOptions = {
@@ -451,11 +484,13 @@ function pathStringButton(controlDiv, map) {
 		var path = poly.getPath();
 		path.push(pt);
 	}
-	var infoW = new google.maps.InfoWindow();
-	infoW.setContent("<p><b>路线名：</b>"+name+"</p><p><b>运价：</b>"+price+"</p><p><b>耗时：</b>"+time+"</p>");
+	curPath = poly;
+	infoW = new google.maps.InfoWindow();
+	infoW.setContent("<p><b>路线名：</b>"+name+"</p><p><b>运价：</b>"+price+"</p><p><b>耗时：</b>"+time+"</p><p><button onclick='deletePath()'>删除</button></p>");
 	infoW.setPosition(pt);
 	infoW.open(map);
 	google.maps.event.addListener(poly, 'click', function(event) {
+		curPath = poly;
 		infoW.setPosition(event.latLng);
 		infoW.open(map);
 	});
