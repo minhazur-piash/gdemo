@@ -8,9 +8,8 @@ $(document).ready(function(){
 		return;
 	}
 	var isPhone = detectBrowser();
-	var loc = getPosition();
 	var mapOptions = {
-		center: loc,
+		center: new google.maps.LatLng(39.92, 116.46),
 		zoom: 12,
 		mapTypeControl: false,
 		streetViewControl: false,
@@ -28,18 +27,25 @@ $(document).ready(function(){
 		mapdiv.style.height = '100%';
 	}
 	var map = new google.maps.Map(mapdiv, mapOptions);
+	getPosition(map);
 	if(isPhone == 0) {
 		var sizeControlDiv = document.createElement('div');
 		var sizeControl = new sizeButton(sizeControlDiv, map);
 		map.controls[google.maps.ControlPosition.TOP_RIGHT].push(sizeControlDiv);
 
 	}
+	if(isPhone == 1) {
+	//home
+		var homeControlDiv = document.createElement('div');
+		var homeControl = new homeButton(homeControlDiv, map);
+		map.controls[google.maps.ControlPosition.TOP_LEFT].push(homeControlDiv);
+	}
 	var inputControlDiv = document.createElement('div');
 	var inputControl = new inputButton(inputControlDiv, map);
 	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(inputControlDiv);
 	var nameControlDiv = document.createElement('div');
 	var nameControl = new nameText(nameControlDiv, map);
-	map.controls[google.maps.ControlPosition.TOP_LEFT].push(nameControlDiv);
+	map.controls[google.maps.ControlPosition.LEFT_TOP].push(nameControlDiv);
 	var searchControlDiv = document.createElement('div');
 	var searchControl = new searchFrame(searchControlDiv, map);
 	map.controls[google.maps.ControlPosition.BOTTOM_LEFT].push(searchControlDiv);
@@ -72,23 +78,21 @@ function detectBrowser() {
 	return isPhone;
 }
 
-function getPosition() {
-	var initialLocation = new google.maps.LatLng(39.92, 116.46);
+function getPosition(map) {
 	if(navigator.geolocation) {
 		browserSupportFlag = true;
 		navigator.geolocation.getCurrentPosition(function(position) {
-			initialLocation = new google.maps.LatLng(position.coords.latitude,position.coords.longitude);
+			map.setCenter(new google.maps.LatLng(position.coords.latitude,position.coords.longitude));
 		});
   // Try Google Gears Geolocation
 	} else if (google.gears) {
 		browserSupportFlag = true;
 		var geo = google.gears.factory.create('beta.geolocation');
 		geo.getCurrentPosition(function(position) {
-			initialLocation = new google.maps.LatLng(position.latitude,position.longitude);
+			map.setCenter(new google.maps.LatLng(position.coords.latitude,position.coords.longitude));
 		});
   // Browser doesn't support Geolocation
 	}
-  return initialLocation;
 }
 
 // Define a property to hold the Size state.
@@ -263,6 +267,33 @@ function inputButton(controlDiv, map) {
 		google.maps.event.removeListener(control.getListener());
 	}
   });
+}
+
+function homeButton(controlDiv, map) {
+	
+  // Set CSS styles for the DIV containing the control
+  // Setting padding to 5 px will offset the control
+  // from the edge of the map.
+  controlDiv.style.padding = '5px';
+
+  // Set CSS for the control border.
+  var controlUI = document.createElement('div');
+  controlUI.style.backgroundColor = 'white';
+  controlUI.style.borderStyle = 'solid';
+  controlUI.style.borderWidth = '1px';
+  controlUI.style.cursor = 'pointer';
+  controlUI.style.textAlign = 'center';
+  controlUI.title = 'Click to return home page';
+  controlDiv.appendChild(controlUI);
+
+  // Set CSS for the control interior.
+  var controlText = document.createElement('div');
+  controlText.style.fontFamily = 'Arial,sans-serif';
+  controlText.style.fontSize = '13px';
+  controlText.style.paddingLeft = '4px';
+  controlText.style.paddingRight = '4px';
+  controlText.innerHTML = '<strong><a href="phone.html">首页</a></strong>';
+  controlUI.appendChild(controlText);
 }
 
 function nameText(controlDiv, map) {
