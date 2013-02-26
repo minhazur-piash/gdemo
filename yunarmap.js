@@ -8,9 +8,12 @@ $(document).ready(function(){
 		return;
 	}
 	var isPhone = detectBrowser();
+	var loc = getPosition();
 	var mapOptions = {
-		center: new google.maps.LatLng(39.92, 116.46),
+		center: loc,
 		zoom: 12,
+		mapTypeControl: false,
+		streetViewControl: false,
 		mapTypeId: google.maps.MapTypeId.ROADMAP
 	};
 	var mapdiv = document.getElementById("yunar_map");
@@ -69,6 +72,24 @@ function detectBrowser() {
 	return isPhone;
 }
 
+function getPosition() {
+	var initialLocation = new google.maps.LatLng(39.92, 116.46);
+	if(navigator.geolocation) {
+		browserSupportFlag = true;
+		navigator.geolocation.getCurrentPosition(function(position) {
+			initialLocation = new google.maps.LatLng(position.coords.latitude,position.coords.longitude);
+		});
+  // Try Google Gears Geolocation
+	} else if (google.gears) {
+		browserSupportFlag = true;
+		var geo = google.gears.factory.create('beta.geolocation');
+		geo.getCurrentPosition(function(position) {
+			initialLocation = new google.maps.LatLng(position.latitude,position.longitude);
+		});
+  // Browser doesn't support Geolocation
+	}
+  return initialLocation;
+}
 
 // Define a property to hold the Size state.
 sizeButton.prototype.size_ = 0;
@@ -119,7 +140,7 @@ function sizeButton(controlDiv, map) {
 			mapdiv.style.height = '100%';
 			mapdiv.style.width = '100%';
 			control.setSize(1);
-			controlText.innerHTML = '<strong>退出全屏</strong>';
+			controlText.innerHTML = '<strong>小窗</strong>';
 			google.maps.event.trigger(map, 'resize');
 		} else {
 			mapdiv.style.top = '100px';
@@ -218,26 +239,26 @@ function inputButton(controlDiv, map) {
   controlText.style.fontSize = '13px';
   controlText.style.paddingLeft = '4px';
   controlText.style.paddingRight = '4px';
-  controlText.innerHTML = '<strong>标记仓库</strong>';
+  controlText.innerHTML = '<strong>标记<br />仓库</strong>';
   controlUI.appendChild(controlText);
 
   var control = this;
   // Setup the click event listeners: simply set the map to Chicago.
   google.maps.event.addDomListener(controlUI, 'click', function() {
 	if(control.getState() == 0) {
-		controlText.innerHTML = '<strong>取消标记</strong>';
+		controlText.innerHTML = '<strong>取消<br />标记</strong>';
 		control.setState(1);
 		var listener = google.maps.event.addListenerOnce(map, 'click', function(event) {
 			if(control.getInfoWindow()==null) {
 				control.setInfoWindow(new google.maps.InfoWindow());
 			}
 			addMarker(map, event.latLng, control.getInfoWindow());
-			controlText.innerHTML = '<strong>标记仓库</strong>';
+			controlText.innerHTML = '<strong>标记<br />仓库</strong>';
 			control.setState(0);
 		});
 		control.setListener(listener);
 	} else {
-		controlText.innerHTML = '<strong>标记仓库</strong>';
+		controlText.innerHTML = '<strong>标记<br />仓库</strong>';
 		control.setState(0);
 		google.maps.event.removeListener(control.getListener());
 	}
@@ -350,14 +371,14 @@ function pathInputButton(controlDiv, map) {
   controlText.style.fontSize = '13px';
   controlText.style.paddingLeft = '4px';
   controlText.style.paddingRight = '4px';
-  controlText.innerHTML = '<strong>标注路线</strong>';
+  controlText.innerHTML = '<strong>标注<br />路线</strong>';
   controlUI.appendChild(controlText);
 
   var control = this;
   // Setup the click event listeners: simply set the map to Chicago.
   google.maps.event.addDomListener(controlUI, 'click', function() {
 	if(control.getState() == 0) {
-		controlText.innerHTML = '<strong>完成路线</strong>';
+		controlText.innerHTML = '<strong>完成<br />路线</strong>';
 		control.setState(1);
 		var polyOptions = {
 			strokeColor: '#000000',
@@ -391,7 +412,7 @@ function pathInputButton(controlDiv, map) {
 		control.setListener(listener);
 		*/
 	} else {
-		controlText.innerHTML = '<strong>标注路线</strong>';
+		controlText.innerHTML = '<strong>标注<br />路线</strong>';
 		control.setState(0);
 		google.maps.event.removeListener(control.getListener());
 		var ckName = prompt("请输入：线路名称，运价，耗时","中关村-北京站,3000,220");
@@ -444,7 +465,7 @@ function pathStringButton(controlDiv, map) {
   controlText.style.fontSize = '13px';
   controlText.style.paddingLeft = '4px';
   controlText.style.paddingRight = '4px';
-  controlText.innerHTML = '<strong>路线输入</strong>';
+  controlText.innerHTML = '<strong>路线<br />输入</strong>';
   controlUI.appendChild(controlText);
 
   var control = this;
