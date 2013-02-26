@@ -66,7 +66,7 @@ $(document).ready(function(){
 function detectBrowser() {
 	var useragent = navigator.userAgent;
 	var isPhone;
-	if (useragent.indexOf('iPhone') != -1 || useragent.indexOf('Android') != -1 ) {
+	if (useragent.indexOf('iPhone') != -1 || useragent.indexOf('iPod') != -1 || useragent.indexOf('Android') != -1 ) {
 		//mapdiv.style.width = '100%';
 		//mapdiv.style.height = '100%';
 		isPhone = 1;
