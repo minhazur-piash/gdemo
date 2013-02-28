@@ -1,4 +1,6 @@
-﻿
+﻿var map;
+var infowindow;
+
 $(document).ready(function(){
 	if(google.maps.Map) {
 		$("#error").append("<br>地图api连接成功</br>");
@@ -26,8 +28,9 @@ $(document).ready(function(){
 		mapdiv.style.width = '100%';
 		mapdiv.style.height = '100%';
 	}
-	var map = new google.maps.Map(mapdiv, mapOptions);
+	map = new google.maps.Map(mapdiv, mapOptions);
 	getPosition(map);
+	infowindow = new google.maps.InfoWindow();
 	if(isPhone == 0) {
 		var sizeControlDiv = document.createElement('div');
 		var sizeControl = new sizeButton(sizeControlDiv, map);
@@ -93,6 +96,27 @@ function getPosition(map) {
 		});
   // Browser doesn't support Geolocation
 	}
+}
+
+function showPopup(w,h,context){  
+    var popUp = document.getElementById("popupcontent");  
+    popUp.style.top = "50px";  
+    popUp.style.left = "50px";  
+    popUp.style.width = w + "px";  
+    popUp.style.height = h + "px";   
+    popUp.innerHTML = "<div id=\"statusbar\" style=\"float:right; position:relative\"><input type=\"button\" value=\"X\" onClick=\"hidePopup();\"></div>"+context;  
+    var sbar = document.getElementById("statusbar"); 
+	sbar.style.marginTop = "0px"
+	sbar.style.marginRight = "0px";
+    popUp.style.visibility = "visible";
+}
+function hidePopup(){  
+    var popUp = document.getElementById("popupcontent");  
+    popUp.style.visibility = "hidden";
+}
+
+function showPopMarkerType() {
+	showPopup(200,100,"<br/> 请选择标注类型：<p><button onclick=''>运 输</button> <button onclick=''>仓 储</button> <button onclick=''>其 他</button></p>");
 }
 
 // Define a property to hold the Size state.
@@ -165,7 +189,70 @@ function deleteMarker() {
 	curMarker.setMap(null);
 }
 
-function addMarker(map, location, infowindow) {
+function addTransMarker() {
+	infowindow.setContent("运输类型:<p><form name='transMaker'><input type='radio' checked='checked' name='line' value='land'/>陆运 <input type='radio' name='line' value='sea'/>海运 <input type='radio' name='line' value='air'/>空运</p><p>运力描述:<input type='text' name='transPower'></p><p>联系方式:<input type='text' name='contact'></p></form><button onclick='drawTransMarker()'>运 输</button>");
+	infowindow.open(map);
+}
+
+function drawTransMarker() {
+	var transPower = document.transMaker.transPower.value;
+	var contact = document.transMaker.contact.value;
+	if(transPower=="") {
+		alert("请输入运力描述");
+		document.transMaker.transPower.focus();
+		return false;
+	}
+	if(contact=="") {
+		alert("请输入联系方式");
+		document.transMaker.contact.focus();
+		return false;
+	}
+	var lineType = document.transMaker.line;
+	var i;
+	for(i=0;i<lineType.length;i++){
+		if(lineType[i].checked){
+			break;        
+		}
+	}
+	var ckName = "运输点<b/>运输类型：";
+	if(i==0) {
+		ckName+="陆运";
+	} else if(i==1) {
+		ckName+="海运";
+	} else if(i==2) {
+		ckName+="空运";
+	}
+	ckName+="<br/>运力描述：";
+	ckName+=transPower;
+	ckName+="<br/>联系方式：";
+	ckName+=contact;
+	var location = infowindow.getPosition();
+	infowindow.setContent(ckName+"<p><button onclick='verifyMarker()'>认证</button> <button onclick='deleteMarker()'>删除</button></p>");
+	//infowindow.setPosition(location);
+  var marker = new google.maps.Marker({
+    position: location,
+	//icon: "A.png",
+    map: map
+  });
+  curMarker = marker;
+  marker.setMap(map);
+  infowindow.open(map,marker);
+  //markersArray.push(marker);
+	google.maps.event.addListener(marker, 'click', function() {
+		curMarker = marker;
+	  infowindow.setContent(ckName+"<p><button onclick='verifyMarker()'>认证</button> <button onclick='deleteMarker()'>删除</button></p>");
+	  infowindow.open(map,marker);
+	});
+}
+
+function addMarker(map, location) {
+	//showPopMarkerType();
+	//return;
+	//var new google.maps.InfoWindow();
+	infowindow.setPosition(location);
+	infowindow.setContent("请选择标注类型：<p><button onclick='addTransMarker()'>运 输</button> <button onclick='addStorageMarker()'>仓 储</button> <button onclick='addOtherMarker()'>其 他</button></p>");
+	infowindow.open(map);
+	return;
 	var ckName = prompt("请输入仓库名","仓库1");
 	if(ckName==null||ckName=="") {
 		return;
@@ -191,7 +278,6 @@ function addMarker(map, location, infowindow) {
 // Define a property to hold the state.
 inputButton.prototype.state_ = 0;
 inputButton.prototype.listener_;
-inputButton.prototype.infowindow_;
 // = new google.maps.InfoWindow({
 //    content: contentString
 //});
@@ -210,14 +296,6 @@ inputButton.prototype.getListener = function() {
 
 inputButton.prototype.setListener = function(listener) {
 	this.listener_ = listener;
-}
-
-inputButton.prototype.getInfoWindow = function() {
-	return this.infowindow_;
-}
-
-inputButton.prototype.setInfoWindow = function(infowindow) {
-	this.infowindow_ = infowindow;
 }
 
 function inputButton(controlDiv, map) {
@@ -253,10 +331,7 @@ function inputButton(controlDiv, map) {
 		controlText.innerHTML = '<strong>取消<br />标记</strong>';
 		control.setState(1);
 		var listener = google.maps.event.addListenerOnce(map, 'click', function(event) {
-			if(control.getInfoWindow()==null) {
-				control.setInfoWindow(new google.maps.InfoWindow());
-			}
-			addMarker(map, event.latLng, control.getInfoWindow());
+			addMarker(map, event.latLng);
 			controlText.innerHTML = '<strong>标记<br />仓库</strong>';
 			control.setState(0);
 		});
