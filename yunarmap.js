@@ -1,5 +1,6 @@
 ﻿var map;
 var infowindow;
+var curMarker;
 
 $(document).ready(function(){
 	if(google.maps.Map) {
@@ -98,27 +99,6 @@ function getPosition(map) {
 	}
 }
 
-function showPopup(w,h,context){  
-    var popUp = document.getElementById("popupcontent");  
-    popUp.style.top = "50px";  
-    popUp.style.left = "50px";  
-    popUp.style.width = w + "px";  
-    popUp.style.height = h + "px";   
-    popUp.innerHTML = "<div id=\"statusbar\" style=\"float:right; position:relative\"><input type=\"button\" value=\"X\" onClick=\"hidePopup();\"></div>"+context;  
-    var sbar = document.getElementById("statusbar"); 
-	sbar.style.marginTop = "0px"
-	sbar.style.marginRight = "0px";
-    popUp.style.visibility = "visible";
-}
-function hidePopup(){  
-    var popUp = document.getElementById("popupcontent");  
-    popUp.style.visibility = "hidden";
-}
-
-function showPopMarkerType() {
-	showPopup(200,100,"<br/> 请选择标注类型：<p><button onclick=''>运 输</button> <button onclick=''>仓 储</button> <button onclick=''>其 他</button></p>");
-}
-
 // Define a property to hold the Size state.
 sizeButton.prototype.size_ = 0;
 
@@ -182,7 +162,14 @@ function sizeButton(controlDiv, map) {
 }
 
 function verifyMarker() {
-	curMarker.setIcon("A.png");
+	var icon = curMarker.getIcon();
+	if(icon=="blue_C.png") {
+		curMarker.setIcon("red_C.png");
+	} else if(icon=="blue_Y.png") {
+		curMarker.setIcon("red_Y.png");
+	} else if(icon=="blue_Q.png") {
+		curMarker.setIcon("red_Q.png");
+	}
 }
 
 function deleteMarker() {
@@ -190,18 +177,100 @@ function deleteMarker() {
 }
 
 function addTransMarker() {
-	infowindow.setContent("运输类型:<p><form name='transMaker'><input type='radio' checked='checked' name='line' value='land'/>陆运 <input type='radio' name='line' value='sea'/>海运 <input type='radio' name='line' value='air'/>空运</p><p>运力描述:<input type='text' name='transPower'></p><p>联系方式:<input type='text' name='contact'></p></form><button onclick='drawTransMarker()'>运 输</button>");
+	infowindow.setContent("<form name='transMaker'><p>名称:<input type='text' name='name'></p><p>类型:<input type='radio' checked='checked' name='line' value='land'/>陆运 <input type='radio' name='line' value='sea'/>海运 <input type='radio' name='line' value='air'/>空运</p><p>运力描述:<input type='text' name='transPower'></p><p>联系方式:<input type='text' name='contact'></p></form><button onclick='drawTransMarker()'>确定</button>");
 	infowindow.open(map);
 }
 
+function addStorageMarker() {
+	infowindow.setContent("<form name='storageMaker'><p>名称:<input type='text' name='name'></p><p>仓储面积:<input type='text' name='storageArea'></p><p>装卸描述:<input type='text' name='loadDiscription'></p><p>联系方式:<input type='text' name='contact'></p></form><button onclick='drawStorageMarker()'>确定</button>");
+	infowindow.open(map);
+}
+
+function addOtherMarker() {
+	infowindow.setContent("<form name='otherMaker'><p>名称:<input type='text' name='name'></p><p>服务简介:<input type='text' name='servDiscription'></p><p>联系方式:<input type='text' name='contact'></p></form><button onclick='drawOtherMarker()'>确定</button>");
+	infowindow.open(map);
+}
+
+function drawOtherMarker() {
+	var name = document.otherMaker.name.value;
+	if(name=="") {
+		alert("请输入名称");
+		document.otherMaker.name.focus();
+		return false;
+	}
+	var servDisc = document.otherMaker.servDiscription.value;
+	if(servDisc=="") {
+		alert("请输入服务简介");
+		document.otherMaker.servDiscription.focus();
+		return false;
+	}
+	var contact = document.otherMaker.contact.value;
+	if(contact=="") {
+		alert("请输入联系方式");
+		document.otherMaker.contact.focus();
+		return false;
+	}
+	var ckName = "其他点<br/>";
+	ckName+="<br/>名称：";
+	ckName+=name;
+	ckName+="<br/>服务简介：";
+	ckName+=servDisc;
+	ckName+="<br/>联系方式：";
+	ckName+=contact;
+	addEMarker(ckName,"blue_Q.png");
+}
+
+function drawStorageMarker() {
+	var name = document.storageMaker.name.value;
+	if(name=="") {
+		alert("请输入名称");
+		document.storageMaker.name.focus();
+		return false;
+	}
+	var area = document.storageMaker.storageArea.value;
+	if(area=="") {
+		alert("请输入仓储面积");
+		document.storageMaker.storageArea.focus();
+		return false;
+	}
+	var disc = document.storageMaker.loadDiscription.value;
+	if(disc=="") {
+		alert("请输入装卸描述");
+		document.storageMaker.loadDiscription.focus();
+		return false;
+	}
+	var contact = document.storageMaker.contact.value;
+	if(contact=="") {
+		alert("请输入联系方式");
+		document.storageMaker.contact.focus();
+		return false;
+	}
+	var ckName = "仓储点<br/>";
+	ckName+="<br/>名称：";
+	ckName+=name;
+	ckName+="<br/>仓储面积：";
+	ckName+=area;
+	ckName+="<br/>装卸描述：";
+	ckName+=disc;
+	ckName+="<br/>联系方式：";
+	ckName+=contact;
+	addEMarker(ckName, "blue_C.png");
+}
+
 function drawTransMarker() {
+	var name = document.transMaker.name.value;
+	if(name=="") {
+		alert("请输入名称");
+		document.transMaker.name.focus();
+		return false;
+	}
 	var transPower = document.transMaker.transPower.value;
-	var contact = document.transMaker.contact.value;
 	if(transPower=="") {
 		alert("请输入运力描述");
 		document.transMaker.transPower.focus();
 		return false;
 	}
+	var contact = document.transMaker.contact.value;
 	if(contact=="") {
 		alert("请输入联系方式");
 		document.transMaker.contact.focus();
@@ -214,7 +283,10 @@ function drawTransMarker() {
 			break;        
 		}
 	}
-	var ckName = "运输点<b/>运输类型：";
+	var ckName = "运输点<br/>";
+	ckName+="<br/>名称：";
+	ckName+=name;
+	ckName+="<br/>运输类型：";
 	if(i==0) {
 		ckName+="陆运";
 	} else if(i==1) {
@@ -226,12 +298,16 @@ function drawTransMarker() {
 	ckName+=transPower;
 	ckName+="<br/>联系方式：";
 	ckName+=contact;
+	addEMarker(ckName, "blue_Y.png");
+}
+
+function addEMarker(ckName, iconPath) {
 	var location = infowindow.getPosition();
 	infowindow.setContent(ckName+"<p><button onclick='verifyMarker()'>认证</button> <button onclick='deleteMarker()'>删除</button></p>");
 	//infowindow.setPosition(location);
   var marker = new google.maps.Marker({
     position: location,
-	//icon: "A.png",
+	icon: iconPath,
     map: map
   });
   curMarker = marker;
@@ -249,30 +325,11 @@ function addMarker(map, location) {
 	//showPopMarkerType();
 	//return;
 	//var new google.maps.InfoWindow();
+	infowindow.close();
 	infowindow.setPosition(location);
 	infowindow.setContent("请选择标注类型：<p><button onclick='addTransMarker()'>运 输</button> <button onclick='addStorageMarker()'>仓 储</button> <button onclick='addOtherMarker()'>其 他</button></p>");
 	infowindow.open(map);
 	return;
-	var ckName = prompt("请输入仓库名","仓库1");
-	if(ckName==null||ckName=="") {
-		return;
-	}
-	infowindow.setContent(ckName+"<p><button onclick='verifyMarker()'>认证</button> <button onclick='deleteMarker()'>删除</button></p>");
-	//infowindow.setPosition(location);
-  var marker = new google.maps.Marker({
-    position: location,
-	//icon: "A.png",
-    map: map
-  });
-  curMarker = marker;
-  marker.setMap(map);
-  infowindow.open(map,marker);
-  //markersArray.push(marker);
-	google.maps.event.addListener(marker, 'click', function() {
-		curMarker = marker;
-	  infowindow.setContent(ckName+"<p><button onclick='verifyMarker()'>认证</button> <button onclick='deleteMarker()'>删除</button></p>");
-	  infowindow.open(map,marker);
-	});
 }
 
 // Define a property to hold the state.
